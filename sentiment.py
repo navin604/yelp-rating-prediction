@@ -9,6 +9,7 @@ from nltk.classify import NaiveBayesClassifier, accuracy
 from nltk.stem import PorterStemmer
 from sklearn.metrics import classification_report
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 techniques = ["p"]
 stop = stopwords.words('english')
@@ -33,27 +34,21 @@ def probabilistic(data):
     data['text'] = data['text'].apply(lambda words: ''.join([PorterStemmer().stem(word) for word in words]))
     print(data)
 
-    X = data[['text']]
-    y = data[["stars"]]
+    X = data["text"]
+    y = data["stars"]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
 
     # Vectorization
     vec = TfidfVectorizer()
-    X_train_tfidf = vec.fit_transform(X_train['text'])
+    X_train_tf = vec.fit_transform(X_train)
+    X_test_tf = vec.transform(X_test)
 
-    # Transform test data
-    X_test_tfidf = vec.transform(X_test['text'])
-
-
-
-    nb = NaiveBayesClassifier.train(X_train_tfidf)
-
-    # Make predictions on test data
-    predictions = nb.classify_many(X_test_tfidf)
+    naive_bayes_classifier = MultinomialNB()
+    naive_bayes_classifier.fit(X_train_tf, y_train)
+    y_pred = naive_bayes_classifier.predict(X_test_tf)
 
     # Calculate accuracy
-    print(accuracy(nb, zip(predictions, y_test['stars'].tolist())))
-
+    print(accuracy_score(y_test, y_pred))
 
 def clean_data(data):
     """ Can be implemented if our models share certain data cleaning methods
