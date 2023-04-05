@@ -5,50 +5,65 @@ from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from typing import List
 import string
+
 from nltk.classify import NaiveBayesClassifier, accuracy
 from nltk.stem import PorterStemmer
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, multilabel_confusion_matrix
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+
 techniques = ["p"]
 stop = stopwords.words('english')
 categories = ['stars', 'useful', 'funny', 'cool']
+
+
 
 def main():
     file, technique, model = process_args(sys.argv[1:])
     validate_args(technique)
     data = preprocess(file)
 
-    data = data.head(15000)
+    # data = data.head(15000)
     if technique == "p":
         probabilistic(data)
+
+def clean_text(text):
+    punc = ''.join([char for char in text if char not in string.punctuation])
+    stop = [word for word in punc.split() if word.lower() not in stopwords.words('english')]
+    return stop
 
 
 def probabilistic(data):
     # Tokenize review
-    data['text'] = data['text'].apply(word_tokenize)
+    # data['text'] = data['text'].apply(word_tokenize)
     # Remove stop words and punctuation
-    data['text'] = data['text'].apply(lambda words: ' '.join([word for word in words if word not in stop]))
-    data['text'] = data['text'].apply(lambda words: ''.join([word for word in words if word not in string.punctuation]))
-    data['text'] = data['text'].apply(lambda words: ''.join([PorterStemmer().stem(word) for word in words]))
+    # data['text'] = data['text'].apply(lambda words: ''.join([word for word in words if word not in stop]))
+    # data['text'] = data['text'].apply(lambda words: ''.join([word for word in words if word not in string.punctuation]))
+    # data['text'] = data['text'].apply(lambda words: ''.join([PorterStemmer().stem(word) for word in words]))
     print(data)
-
-    X = data["text"]
-    y = data["stars"]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
+    vec = CountVectorizer(analyzer=clean_text)
+    fitted_data = vec.fit_transform(data['text'])
+    X = fitted_data
+    y = data[["stars"]]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     # Vectorization
-    vec = TfidfVectorizer()
-    X_train_tf = vec.fit_transform(X_train)
-    X_test_tf = vec.transform(X_test)
+    # vec = TfidfVectorizer()
+    # X_train_tf = vec.fit_transform(X_train)
+    # X_test_tf = vec.transform(X_test)
 
     naive_bayes_classifier = MultinomialNB()
-    naive_bayes_classifier.fit(X_train_tf, y_train)
-    y_pred = naive_bayes_classifier.predict(X_test_tf)
+    # naive_bayes_classifier.fit(X_train_tf, y_train)
+    naive_bayes_classifier.fit(X_train, y_train)
+   # y_pred = naive_bayes_classifier.predict(X_test_tf)
+    y_pred = naive_bayes_classifier.predict(X_test)
 
-    # Calculate accuracy
-    print(accuracy_score(y_test, y_pred))
+    #accuracy = accuracy_score(y_test, y_pred)
+    print("Accuracy:", accuracy)
+    print(classification_report(y_test, y_pred))
+
+
 
 def clean_data(data):
     """ Can be implemented if our models share certain data cleaning methods
