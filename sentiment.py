@@ -1,23 +1,25 @@
 import pandas as pd
 import sys
-import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from typing import List
 import string
-
-
+from nltk.classify import NaiveBayesClassifier, accuracy
+from nltk.stem import PorterStemmer
+from sklearn.metrics import classification_report
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
 techniques = ["p"]
 stop = stopwords.words('english')
-
+categories = ['stars', 'useful', 'funny', 'cool']
 
 def main():
     file, technique, model = process_args(sys.argv[1:])
     validate_args(technique)
     data = preprocess(file)
 
-    data = data.head(10000)
+    data = data.head(15000)
     if technique == "p":
         probabilistic(data)
 
@@ -26,10 +28,31 @@ def probabilistic(data):
     # Tokenize review
     data['text'] = data['text'].apply(word_tokenize)
     # Remove stop words and punctuation
-    data['text'] = data['text'].apply(lambda words: [word for word in words if word not in stop])
-    data['text'] = data['text'].apply(lambda words: [word for word in words if word not in string.punctuation])
+    data['text'] = data['text'].apply(lambda words: ' '.join([word for word in words if word not in stop]))
+    data['text'] = data['text'].apply(lambda words: ''.join([word for word in words if word not in string.punctuation]))
+    data['text'] = data['text'].apply(lambda words: ''.join([PorterStemmer().stem(word) for word in words]))
+    print(data)
+
+    X = data[['text']]
+    y = data[["stars"]]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
+
+    # Vectorization
+    vec = TfidfVectorizer()
+    X_train_tfidf = vec.fit_transform(X_train['text'])
+
+    # Transform test data
+    X_test_tfidf = vec.transform(X_test['text'])
 
 
+
+    nb = NaiveBayesClassifier.train(X_train_tfidf)
+
+    # Make predictions on test data
+    predictions = nb.classify_many(X_test_tfidf)
+
+    # Calculate accuracy
+    print(accuracy(nb, zip(predictions, y_test['stars'].tolist())))
 
 
 def clean_data(data):
