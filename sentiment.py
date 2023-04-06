@@ -1,6 +1,5 @@
 import pickle
 import time
-from nltk.tokenize import word_tokenize
 import pandas as pd
 import sys
 from nltk.corpus import stopwords
