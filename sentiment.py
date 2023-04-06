@@ -59,7 +59,6 @@ def probabilistic(train_data, test_data, file):
         X_train = vec.fit_transform(train_data['text'])
         X_test = vec.transform(test_data['text'])
         for task in tasks:
-
             y_train = train_data[[task]]
             clf = MultinomialNB()
             clf.fit(X_train, y_train)
