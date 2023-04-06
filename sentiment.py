@@ -60,7 +60,7 @@ def probabilistic(train_data, test_data, model):
             y_test = test_data[[task]]
             clf = MultinomialNB()
             clf.fit(X_train, y_train)
-            model[task] = clf
+            models[task] = clf
         filename = "p" + '.sav'
         file = open(filename, 'wb')
         pickle.dump(models, file)
@@ -68,7 +68,7 @@ def probabilistic(train_data, test_data, model):
 
     predictions = {}
     for task in tasks:
-        clf = model[task]
+        clf = models[task]
         y_pred = clf.predict(X_test)
         predictions[task] = y_pred
 
