@@ -13,7 +13,6 @@ stop = stopwords.words('english')
 tasks = ["stars", "useful", "funny", "cool"]
 
 
-
 def main():
     train_file, test_file, technique, model = process_args(sys.argv[1:])
     validate_args(technique)
