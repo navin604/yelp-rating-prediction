@@ -1,24 +1,16 @@
 import pickle
-
 import pandas as pd
 import sys
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
 from typing import List
 import string
-
-from nltk.classify import NaiveBayesClassifier, accuracy
-from nltk.stem import PorterStemmer
-from sklearn.metrics import classification_report, multilabel_confusion_matrix, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
 
 techniques = ["p"]
 stop = stopwords.words('english')
-
-tasks = ['stars']
+tasks = ["stars", "useful", "funny", "cool"]
 
 
 
@@ -32,6 +24,7 @@ def main():
     test_data = test_data.head(10000)
     if technique == "p":
         probabilistic(train_data, test_data, model)
+
 
 def clean_text(text):
     punc = ''.join([char for char in text if char not in string.punctuation])
@@ -72,10 +65,15 @@ def probabilistic(train_data, test_data, model):
         y_pred = clf.predict(X_test)
         predictions[task] = y_pred
 
+    for task in tasks:
+        y_test = test_data[[task]]
+        y_pred = predictions[task]
+        print(classification_report(y_test, y_pred))
+        print(accuracy_score(y_test, y_pred)*100)
+        # text = res.split('\n')
+        # edited_text = [line for line in res if not line.startswith('macro')]
+        # new_report = '\n'.join(edited_text)
 
-    accuracy = accuracy_score(y_test, y_pred)
-    print("Accuracy:", accuracy)
-    print(classification_report(y_test, y_pred))
 
 
 
