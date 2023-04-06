@@ -1,10 +1,12 @@
 import pickle
+import time
+from nltk.tokenize import word_tokenize
 import pandas as pd
 import sys
 from nltk.corpus import stopwords
 from typing import List
 import string
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import CountVectorizer
 import warnings
@@ -25,16 +27,18 @@ def main():
             technique, train_file, test_file, model = arr[0], arr[1], arr[2], arr[3]
             train_data = preprocess(train_file)
             test_data = preprocess(test_file)
-            train_data = train_data.head(10000)
-            test_data = test_data.head(10000)
+            train_data = train_data.head(35000)
+            test_data = test_data.head(35000)
         else:
             technique, valid_file, model = arr[0], arr[1], arr[2]
             test_data = preprocess(valid_file)
-            test_data = test_data.head(10000)
+            test_data = test_data.head(35000)
             train_data = None
 
         validate_args(technique)
         probabilistic(train_data, test_data, model)
+    elif  sys.argv[1] == "n":
+        process_args(sys.argv[1:])
 
 
 def clean_text(text):
@@ -52,6 +56,7 @@ def probabilistic(train_data, test_data, file):
 
     else:
         vec = CountVectorizer(analyzer=clean_text)
+        start = time.time()
         X_train = vec.fit_transform(train_data['text'])
         X_test = vec.transform(test_data['text'])
         for task in tasks:
@@ -60,10 +65,10 @@ def probabilistic(train_data, test_data, file):
             clf = MultinomialNB()
             clf.fit(X_train, y_train)
             models[task] = clf
-        filename = "p" + '.sav'
+        filename = "pp" + '.sav'
         file = open(filename, 'wb')
         pickle.dump([models, vec], file)
-
+    print(f"Done training in {round(time.time()-start, 2)} seconds ")
     file.close()
     predictions = {}
     for task in tasks:
@@ -74,7 +79,8 @@ def probabilistic(train_data, test_data, file):
     for task in tasks:
         y_test = test_data[[task]]
         y_pred = predictions[task]
-        print(f"TASK: {task} - ACCURACY: {round(accuracy_score(y_test, y_pred)*100,2)}")
+        f1 = f1_score(y_test, y_pred, average='weighted')
+        print(f"TASK: {task} ||| F1: {round(f1*100,2)} -- ACCURACY: {round(accuracy_score(y_test, y_pred)*100,2)}")
 
 
 
