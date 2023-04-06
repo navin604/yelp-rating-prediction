@@ -84,7 +84,7 @@ class NeuralNetwork:
             self.trainModel()
 
     def evaluateModel(self):
-        test_data = preprocess(test_set, 10000)
+        test_data = preprocess(self.test_set, 10000)
         tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
         nLabels = 5 if self.predictType == "stars" else 1
         model = RobertaForSequenceClassification.from_pretrained(self.fromSave, num_labels=nLabels)
@@ -109,8 +109,8 @@ class NeuralNetwork:
         print(f"res: {res}")
 
     def trainModel(self):
-        train_data = preprocess(train_set, 10000)
-        test_data = preprocess(test_set, 10000)
+        train_data = preprocess(self.train_set, 10000)
+        test_data = preprocess(self.test_set, 10000)
         # load tokenizer/model
         tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
         modelName = self.fromSave if self.fromSave else 'roberta-base'
