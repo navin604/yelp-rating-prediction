@@ -47,14 +47,30 @@ def probabilistic(train_data, test_data, model):
     # vec = TfidfVectorizer(analyzer=clean_text)
     # X_train_tf = vec.fit_transform(X_train)
     # X_test_tf = vec.transform(X_test)
-    vec = CountVectorizer(analyzer=clean_text)
-    fitted_data = vec.fit_transform(data['text'])
-    X = data["text"]
-    y = data["stars"]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
+    if model:
+        # X_test = X
+        # y_test = y
+        # file = open(model, 'rb')
+        # pca, clf = pickle.load(file)
+        pass
 
-
+    else:
+        vec = CountVectorizer(analyzer=clean_text)
+        X_train = vec.fit_transform(train_data['text'])
+        y_train = train_data[['stars']]
+        X_test = vec.transform(test_data['text'])
+        y_test = test_data[['stars']]
+        # # Divide data into training and testing
+        # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+        # pca = PCA()
+        # X_train = pca.fit_transform(X_train)
+        # # Instantiate SVC model
+        # clf = make_pipeline(StandardScaler(), LinearSVC(multi_class="ovr", dual=False))
+        # clf.fit(X_train, y_train)
+        # filename = "svm_" + task + '.sav'
+        # file = open(filename, 'wb')
+        # pickle.dump([pca, clf], file)
     naive_bayes_classifier = MultinomialNB()
     # naive_bayes_classifier.fit(X_train_tf, y_train)
     naive_bayes_classifier.fit(X_train, y_train)
