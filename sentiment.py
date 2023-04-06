@@ -64,7 +64,7 @@ def probabilistic(train_data, test_data, file):
             clf = MultinomialNB()
             clf.fit(X_train, y_train)
             models[task] = clf
-        filename = "pp" + '.sav'
+        filename = "p" + '.sav'
         file = open(filename, 'wb')
         pickle.dump([models, vec], file)
     print(f"Done training in {round(time.time()-start, 2)} seconds ")
