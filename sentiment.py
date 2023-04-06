@@ -14,14 +14,21 @@ tasks = ["stars", "useful", "funny", "cool"]
 
 
 def main():
-    train_file, test_file, technique, model = process_args(sys.argv[1:])
-    validate_args(technique)
-    train_data = preprocess(train_file)
-    test_data = preprocess(test_file)
+    if sys.argv[1] == "p":
+        arr = process_args(sys.argv[1:])
+        if len(arr) == 4:
+            technique, train_file, test_file, model = arr[0], arr[1], arr[2], arr[3]
+            train_data = preprocess(train_file)
+            test_data = preprocess(test_file)
+            train_data = train_data.head(10000)
+            test_data = test_data.head(10000)
+        else:
+            technique, valid_file, model = arr[0], arr[1], arr[2]
+            test_data = preprocess(valid_file)
+            test_data = test_data.head(10000)
+            train_data = None
 
-    train_data = train_data.head(10000)
-    test_data = test_data.head(10000)
-    if technique == "p":
+        validate_args(technique)
         probabilistic(train_data, test_data, model)
 
 
@@ -31,15 +38,15 @@ def clean_text(text):
     return stop
 
 
-def probabilistic(train_data, test_data, model):
+def probabilistic(train_data, test_data, file):
+    print("in prob")
     models = {}
-    if model:
-        # X_test = X
-        # y_test = y
-        # file = open(model, 'rb')
-        # pca, clf = pickle.load(file)
-        pass
 
+    if file:
+        file = open(file, 'rb')
+        models, vec = pickle.load(file)
+        X_test = vec.transform(test_data['text'])
+        print("ifinished vec fit")
     else:
         print("PREPROCESSING DATA")
         vec = CountVectorizer(analyzer=clean_text)
@@ -49,15 +56,15 @@ def probabilistic(train_data, test_data, model):
         for task in tasks:
             print(f"STARTIN{task}")
             y_train = train_data[[task]]
-            y_test = test_data[[task]]
             clf = MultinomialNB()
             clf.fit(X_train, y_train)
             models[task] = clf
         filename = "p" + '.sav'
         file = open(filename, 'wb')
-        pickle.dump(models, file)
-    file.close()
+        pickle.dump([models, vec], file)
 
+    file.close()
+    print("predicting")
     predictions = {}
     for task in tasks:
         clf = models[task]
@@ -89,9 +96,14 @@ def validate_args(technique):
 
 
 def process_args(args) -> List[str]:
-    if len(args) == 3:
-        args.append(None)
-    return args[0], args[1], args[2], args[3]
+    if args[0] == "p":
+        if args[-1] != "p.sav":
+            args.append(None)
+            return [args[0], args[1], args[2], args[3]]
+        else:
+            return [args[0], args[1], args[2]]
+
+
 
 
 def preprocess(file_name) -> pd.DataFrame:
