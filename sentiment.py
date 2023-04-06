@@ -20,13 +20,15 @@ categories = ['stars', 'useful', 'funny', 'cool']
 
 
 def main():
-    file, technique, model = process_args(sys.argv[1:])
+    train_file, test_file, technique, model = process_args(sys.argv[1:])
     validate_args(technique)
-    data = preprocess(file)
+    train_data = preprocess(train_file)
+    test_data = preprocess(test_file)
 
-    # data = data.head(15000)
+    train_data = train_data.head(10000)
+    test_data = test_data.head(10000)
     if technique == "p":
-        probabilistic(data)
+        probabilistic(train_data, test_data, model)
 
 def clean_text(text):
     punc = ''.join([char for char in text if char not in string.punctuation])
@@ -34,24 +36,24 @@ def clean_text(text):
     return stop
 
 
-def probabilistic(data):
+def probabilistic(train_data, test_data, model):
     # Tokenize review
     # data['text'] = data['text'].apply(word_tokenize)
     # Remove stop words and punctuation
     # data['text'] = data['text'].apply(lambda words: ''.join([word for word in words if word not in stop]))
     # data['text'] = data['text'].apply(lambda words: ''.join([word for word in words if word not in string.punctuation]))
     # data['text'] = data['text'].apply(lambda words: ''.join([PorterStemmer().stem(word) for word in words]))
-    print(data)
-    vec = CountVectorizer(analyzer=clean_text)
-    fitted_data = vec.fit_transform(data['text'])
-    X = fitted_data
-    y = data[["stars"]]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
     # Vectorization
-    # vec = TfidfVectorizer()
+    # vec = TfidfVectorizer(analyzer=clean_text)
     # X_train_tf = vec.fit_transform(X_train)
     # X_test_tf = vec.transform(X_test)
+    vec = CountVectorizer(analyzer=clean_text)
+    fitted_data = vec.fit_transform(data['text'])
+    X = data["text"]
+    y = data["stars"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+
 
     naive_bayes_classifier = MultinomialNB()
     # naive_bayes_classifier.fit(X_train_tf, y_train)
@@ -78,9 +80,9 @@ def validate_args(technique):
 
 
 def process_args(args) -> List[str]:
-    if len(args) == 2:
+    if len(args) == 3:
         args.append(None)
-    return args[0], args[1], args[2],
+    return args[0], args[1], args[2], args[3]
 
 
 def preprocess(file_name) -> pd.DataFrame:
