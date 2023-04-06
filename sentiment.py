@@ -4,9 +4,14 @@ import sys
 from nltk.corpus import stopwords
 from typing import List
 import string
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import accuracy_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import CountVectorizer
+import warnings
+
+
+warnings.filterwarnings('always')
+warnings.filterwarnings('ignore')
 
 techniques = ["p"]
 stop = stopwords.words('english')
@@ -39,22 +44,18 @@ def clean_text(text):
 
 
 def probabilistic(train_data, test_data, file):
-    print("in prob")
     models = {}
-
     if file:
         file = open(file, 'rb')
         models, vec = pickle.load(file)
         X_test = vec.transform(test_data['text'])
-        print("ifinished vec fit")
+
     else:
-        print("PREPROCESSING DATA")
         vec = CountVectorizer(analyzer=clean_text)
         X_train = vec.fit_transform(train_data['text'])
         X_test = vec.transform(test_data['text'])
-        print("TRAINING MODELS")
         for task in tasks:
-            print(f"STARTIN{task}")
+
             y_train = train_data[[task]]
             clf = MultinomialNB()
             clf.fit(X_train, y_train)
@@ -64,7 +65,6 @@ def probabilistic(train_data, test_data, file):
         pickle.dump([models, vec], file)
 
     file.close()
-    print("predicting")
     predictions = {}
     for task in tasks:
         clf = models[task]
@@ -74,12 +74,7 @@ def probabilistic(train_data, test_data, file):
     for task in tasks:
         y_test = test_data[[task]]
         y_pred = predictions[task]
-        print(classification_report(y_test, y_pred))
-        print(accuracy_score(y_test, y_pred)*100)
-        # text = res.split('\n')
-        # edited_text = [line for line in res if not line.startswith('macro')]
-        # new_report = '\n'.join(edited_text)
-
+        print(f"TASK: {task} - ACCURACY: {round(accuracy_score(y_test, y_pred)*100,2)}")
 
 
 
