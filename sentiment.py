@@ -28,6 +28,15 @@ def main():
             test_data = preprocess(test_file)
             train_data = train_data.head(35000)
             test_data = test_data.head(35000)
+            ## Experiment 2
+            # print(train_data['stars'].value_counts()[1])
+            # print(train_data['stars'].value_counts()[2])
+            # print(train_data['stars'].value_counts()[3])
+            # print(train_data['stars'].value_counts()[4])
+            # print(train_data['stars'].value_counts()[5])
+            # print("trimming")
+            # train_data = train_data[train_data.stars != 1]
+            # test_data = test_data[test_data.stars != 1]
         else:
             technique, valid_file, model = arr[0], arr[1], arr[2]
             test_data = preprocess(valid_file)
@@ -43,11 +52,14 @@ def main():
 def clean_text(text):
     punc = ''.join([char for char in text if char not in string.punctuation])
     stop = [word for word in punc.split() if word.lower() not in stopwords.words('english')]
+    ## Comment out line 54 and 57 for experiment 3
+    # return punc
     return stop
 
 
 def probabilistic(train_data, test_data, file):
     models = {}
+    start = time.time()
     if file:
         file = open(file, 'rb')
         models, vec = pickle.load(file)
@@ -55,7 +67,6 @@ def probabilistic(train_data, test_data, file):
 
     else:
         vec = CountVectorizer(analyzer=clean_text)
-        start = time.time()
         X_train = vec.fit_transform(train_data['text'])
         X_test = vec.transform(test_data['text'])
         for task in tasks:
