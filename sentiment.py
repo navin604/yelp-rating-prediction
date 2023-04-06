@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import CountVectorizer
 import warnings
-
+from neuralNetwork import NeuralNetwork
 
 warnings.filterwarnings('always')
 warnings.filterwarnings('ignore')
@@ -103,6 +103,16 @@ def process_args(args) -> List[str]:
             return [args[0], args[1], args[2], args[3]]
         else:
             return [args[0], args[1], args[2]]
+    elif args[0] == "n":
+        predictType = args[1]
+        modelPath = None
+        trainPath = None
+        if "json" in args[2]:
+            trainPath = args[2]
+        else:
+            modelPath = args[2]
+        testPath = args[3]
+        NeuralNetwork(modelPath, predictType, train_set=trainPath, test_set=testPath)
 
 
 
